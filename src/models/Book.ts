@@ -12,4 +12,7 @@ export class Book {
     series:boolean
     numberInSeries:number
     ISBN:string
+    averageRating:number
+    numberOfRatings:number
+    image:string
 }

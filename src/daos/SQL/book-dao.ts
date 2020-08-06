@@ -21,14 +21,14 @@ export async function getAllBooks() {
     //that process can take some time and can fail so we declare the var ahead of time
     try {
         client = await connectionPool.connect()
-        let results: QueryResult = await client.query(`select b.book_id, b."pages", b.chapters, b."ISBN" ,b.series , b.number_in_series , b.publisher , b.publishing_date , b.title, array_agg(distinct (a.author)) as authors, array_agg(distinct (g.genre)) as genres 
+        let results: QueryResult = await client.query(`select b."google_id", b.book_id, b."pages", b.chapters, b."ISBN" ,b.series , b.number_in_series , b.publisher , b.publishing_date , b.title, array_agg(distinct (a.author)) as authors, array_agg(distinct (g.genre)) as genres 
                                                     from ${schema}.books b 
                                                     natural join ${schema}.books_authors ba 
                                                     natural join ${schema}.authors a
                                                     natural join ${schema}.books_genre bg
                                                     natural join ${schema}.genre g
                                                     group by b.book_id;`)
-        return results.rows.map(BookDTOtoBookConvertor)
+        return Promise.all(results.rows.map(BookDTOtoBookConvertor))//promise .all takes an array of promises and turns them into a single promise
     } catch (e) {
         //we should do some sort of error processing in this catch statement
         console.log(e)
@@ -44,7 +44,7 @@ export async function findbookById(id:number) {
     try{
         //id = '1 or 1 = 1; drop table l${schema}.books cascade; select * from l${schema}.book '
         client = await connectionPool.connect()
-        let results: QueryResult = await client.query(`select b.book_id, b."pages", b.chapters, b."ISBN" ,b.series , b.number_in_series , b.publisher , b.publishing_date , b.title, array_agg(distinct (a.author)) as authors, array_agg(distinct (g.genre)) as genres 
+        let results: QueryResult = await client.query(`select b."google_id", b.book_id, b."pages", b.chapters, b."ISBN" ,b.series , b.number_in_series , b.publisher , b.publishing_date , b.title, array_agg(distinct (a.author)) as authors, array_agg(distinct (g.genre)) as genres 
         from ${schema}.books b 
         natural join ${schema}.books_authors ba 
         natural join ${schema}.authors a
@@ -56,7 +56,7 @@ export async function findbookById(id:number) {
         if(results.rowCount === 0){
             throw new Error('NotFound')
         }else{
-            return BookDTOtoBookConvertor(results.rows[0])
+            return await BookDTOtoBookConvertor(results.rows[0])
         }
     }catch(e){
         //some real error handling
@@ -76,7 +76,7 @@ export async function findbooksByIdSet(ids:number[]) {
     try{
         //id = '1 or 1 = 1; drop table l${schema}.books cascade; select * from l${schema}.book '
         client = await connectionPool.connect()
-        let results: QueryResult = await client.query(`select b.book_id, b."pages", b.chapters, b."ISBN" ,b.series , b.number_in_series , b.publisher , b.publishing_date , b.title, array_agg(distinct (a.author)) as authors, array_agg(distinct (g.genre)) as genres 
+        let results: QueryResult = await client.query(`select b."google_id", b.book_id, b."pages", b.chapters, b."ISBN" ,b.series , b.number_in_series , b.publisher , b.publishing_date , b.title, array_agg(distinct (a.author)) as authors, array_agg(distinct (g.genre)) as genres 
         from ${schema}.books b 
         natural join ${schema}.books_authors ba 
         natural join ${schema}.authors a
@@ -88,7 +88,7 @@ export async function findbooksByIdSet(ids:number[]) {
         if(results.rowCount === 0){
             throw new Error('NotFound')
         }else{
-            return results.rows.map(BookDTOtoBookConvertor)
+            return Promise.all(results.rows.map(BookDTOtoBookConvertor))
         }
     }catch(e){
         //some real error handling

@@ -12,4 +12,5 @@ export class BookDTO {
     title: string
     authors: string[]
     genres: string[]
+    google_id:string
 }

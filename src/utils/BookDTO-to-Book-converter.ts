@@ -1,13 +1,15 @@
 import { BookDTO } from "../dtos/book-dto";
 import { Book } from "../models/Book";
 import { Genre } from "../models/Genre";
+import { getBookById } from "../remote/google-books/get-book-by-id";
 
 // works perfectly with the map function
-export function BookDTOtoBookConvertor( bto:BookDTO):Book{
+export async function BookDTOtoBookConvertor( bto:BookDTO):Promise<Book>{
     let genre:Genre[] = [];
     for(const g of bto.genres){
         genre.push({genreId:0, genre:g})// this si a problem to solve in the future
     }
+    let googData = await getBookById(bto.google_id)
     return {
         ISBN: bto.ISBN.toString(),
         authors:bto.authors,
@@ -19,6 +21,10 @@ export function BookDTOtoBookConvertor( bto:BookDTO):Book{
         publisher:bto.publisher,
         publishingDate: bto.publishing_date.getFullYear(),
         series:bto.series,
-        title:bto.title
+        title:bto.title,
+        averageRating:googData.volumeInfo.averageRating,
+        numberOfRatings:googData.volumeInfo.ratingsCount,
+        image:googData.volumeInfo.imageLinks.thumbnail
+
     }
 }
