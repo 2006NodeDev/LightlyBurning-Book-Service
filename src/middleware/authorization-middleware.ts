@@ -7,11 +7,11 @@ import { Response, NextFunction } from "express";
 
 // utilize the factory pattern, we provide an array of accepted roles, and return a function that allows those roles through
 // this function is a middleware factory
-export function authorizationMiddleware(roles:string[]){// build a middleware function
+export function authorizationMiddleware(permissions:string[]){// build a middleware function
     return (req:any, res:Response, next:NextFunction) => {
         let allowed = false
-        for(const role of roles){
-            if(req.user.role === role){//we probably want to look for something else now because session will no longer exist
+        for(const scope of permissions){
+            if(req.user.scopes.contains(scope)){//we probably want to look for something else now because session will no longer exist
                 //we found a matching role, allow them in
                 allowed = true
                 next()
